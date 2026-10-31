@@ -1,0 +1,51 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+# Needed so GitHub can prove its identity to AWS (OIDC). No AWS keys are stored anywhere.
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.APP_REGION }}
+
+      - name: Deploy with SST
+        run: npx sst deploy --stage production
+        env:
+          SST_TELEMETRY_DISABLED: "1"
+          # plain settings (GitHub > Settings > Secrets and variables > Actions > Variables)
+          APP_REGION: ${{ vars.APP_REGION }}
+          USERS_TABLE: ${{ vars.USERS_TABLE }}
+          PRODUCTS_TABLE: ${{ vars.PRODUCTS_TABLE }}
+          ORDERS_TABLE: ${{ vars.ORDERS_TABLE }}
+          IMAGES_BUCKET: ${{ vars.IMAGES_BUCKET }}
+          FILES_BUCKET: ${{ vars.FILES_BUCKET }}
+          IMAGES_BASE_URL: ${{ vars.IMAGES_BASE_URL }}
+          APP_URL: ${{ vars.APP_URL }}
+          PLATFORM_FEE_PERCENT: ${{ vars.PLATFORM_FEE_PERCENT }}
+          # private settings (the Secrets tab)
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          PAYSTACK_SECRET_KEY: ${{ secrets.PAYSTACK_SECRET_KEY }}

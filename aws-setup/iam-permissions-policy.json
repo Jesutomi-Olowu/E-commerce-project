@@ -1,0 +1,29 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DatabaseAccess",
+      "Effect": "Allow",
+      "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:Query", "dynamodb:Scan"],
+      "Resource": [
+        "arn:aws:dynamodb:REGION:ACCOUNT_ID:table/Users",
+        "arn:aws:dynamodb:REGION:ACCOUNT_ID:table/Products",
+        "arn:aws:dynamodb:REGION:ACCOUNT_ID:table/Orders",
+        "arn:aws:dynamodb:REGION:ACCOUNT_ID:table/Products/index/*",
+        "arn:aws:dynamodb:REGION:ACCOUNT_ID:table/Orders/index/*"
+      ]
+    },
+    {
+      "Sid": "UploadFiles",
+      "Effect": "Allow",
+      "Action": "s3:PutObject",
+      "Resource": ["arn:aws:s3:::IMAGES_BUCKET/*", "arn:aws:s3:::FILES_BUCKET/*"]
+    },
+    {
+      "Sid": "DownloadPaidFiles",
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::FILES_BUCKET/*"
+    }
+  ]
+}
